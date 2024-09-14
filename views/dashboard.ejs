@@ -1,0 +1,275 @@
+<html>
+
+<head>
+  <title>Blaze Server | Dashboard</title>
+  <meta name="author" content="blazeinferno64">
+  <meta name="description" content="Fast, minimalistic, multi-threaded, open source rest api server made by BlazeInferno64">
+  <meta name="theme-color" content="black">
+  <meta name="keywords" content="BlazeInferno64, Github, blazed.js, Blaze Server, Blaze Rest Api Server , Blaze Servers">
+  <link rel="icon" href="https://avatars.githubusercontent.com/u/96913755?v=4" type="image/x-icon"/>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    .progress-bar {
+      display: flex;
+      align-items: center;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      background: rgba(30, 30, 30);
+      color: #fff;
+      padding: .3rem .5rem;
+      font-size: 1.3rem;
+      height: 16%;
+    }
+
+    .footer a {
+      text-decoration: none;
+      color: rgb(0, 238, 255);
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+      color: hsl(184, 100%, 40%);
+    }
+
+    .card {
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .card-header {
+      background-color: #f7f7f7;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .text-muted {
+      color: #666;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 10px;
+    }
+
+    .badge-success {
+      background-color: #2ecc71;
+      color: #fff;
+    }
+
+    .badge-danger {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+
+    /* Dark mode styles */
+    .dark-mode {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .dark-mode .card {
+      background-color: #444;
+      color: #fff;
+    }
+
+    .dark-mode .card-header {
+      background-color: #555;
+      color: #fff;
+    }
+
+    .dark-mode .card-body .text-muted {
+      color: #fff !important;
+    }
+
+    .dark-mode .badge {
+      background-color: #666;
+      color: #fff;
+    }
+
+    .dark-mode .badge-success {
+      background-color: #2ecc71;
+      color: #fff;
+    }
+
+    .dark-mode .badge-danger {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      border-radius: .3rem;
+    }
+
+    #logs-info {
+      white-space: pre-wrap;
+    }
+
+    .btn-group .btn {
+      margin: 5px;
+      flex-basis: 30%;
+    }
+
+    @media (max-width: 768px) {
+      .btn-group .btn {
+        flex-basis: 45%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .btn-group .btn {
+        flex-basis: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h1 class="text-primary">Dashboard</h1>
+    <p class="lead">Blaze Server Admin Dashboard. Have a look on every aspect of the server</p>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h2>Server Logs</h2>
+          </div>
+          <div class="card-body">
+            <textarea id="logs-info" style="resize: none;" class="form-control" rows="10" readonly><%= logs %>
+            </textarea>
+            <br>
+            <div class="btn-group">
+              <button id="clear-btn" class="btn btn-primary"><i class="fa-solid fa-rotate-right"></i> Clear
+                Logs</button>
+              <button id="refresh-btn" class="btn btn-info"><i class="fa-solid fa-refresh"></i> Refresh Logs</button>
+              <button id="download-btn" class="btn btn-success"><i class="fa-solid fa-download"></i> Download
+                Logs</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h2>Memory Info</h2>
+          </div>
+          <div class="card-body">
+            <h5>Memory Usage: <%= memoryUsage %>% (<%= memInfo %>)</h5>
+            <div class="progress">
+              <div class="progress-bar <%= progressBarColor %>" role="progressbar" style="width:<%=memoryUsage%>%">
+              </div>
+            </div>
+            <br>
+            <p class="text-muted">Available system memory: <b>
+                <%= freeMemory %>
+              </b></p>
+            <p class="text-muted">Total system memory: <b>
+                <%= totalMemory %>
+              </b></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h2>Server Status Monitor</h2>
+          </div>
+          <div class="card-body">
+            <h5>Monitoring Server Status</h5>
+            <br>
+            <p class="text-muted">Servers Last Updated: <%= formattedDate %>
+            </p>
+            <p class="text-muted">Servers Status: <a target="_blank" href="/status"><span
+                  class="badge <%= status === 'online' ? 'badge-success' : 'badge-danger' %>">
+                  <%= status %>
+                </span></a></p>
+            <button id="toggle-dark-mode" class="btn btn-secondary">Toggle Dark Mode</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h2>CPU Info</h2>
+          </div>
+          <div class="card-body">
+            <h5>Some general CPU info about the host machine</h5>
+            <br>
+            <p class="text-muted">CPU Model Name: <b>
+                <%= cpuName %>
+              </b></p>
+            <p class="text-muted">CPU Speed: <b>
+                <%= cpuSpeed %>
+              </b></p>
+            <p class="text-muted">CPU's Total Cores: <b>
+                <%= cpuCores %>
+              </b></p>
+            <p class="text-muted">CPU's Available Parallelism: <b>
+                <%= cpuParallelism %>
+              </b></p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h2>Host Machine Info</h2>
+          </div>
+          <div class="card-body">
+            <h5>Some general info about the host machine</h5>
+            <br>
+            <p class="text-muted">Hostname: <b>
+                <%= hostname %>
+              </b></p>
+            <p class="text-muted">Host OS: <b>
+                <%= hostOS %>
+              </b></p>
+            <p class="text-muted">Host OS's uptime: <b>
+                <%= uptime %>
+              </b></p>
+            <p class="text-muted">Host OS Release: <b>
+                <%= osRelease %>
+              </b></p>
+            <p class="text-muted">Host OS Architecture: <b>
+                <%= arch %>
+              </b></p>
+            <p class="text-muted">Host OS Type: <b>
+                <%= osType %>
+              </b></p>
+            <p class="text-muted">Host Machine: <b>
+                <%= hostMachine %>
+              </b></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+  </div>
+  <footer class="footer">
+    <p>
+      Copyright &copy;2024 <a href="https://github.com/blazeinferno64"><i class="fa fa-github"></i> BlazeInferno64</a>
+    </p>
+  </footer>
+  <script defer src="assets/js/main.js"></script>
+</body>
+
+</html>

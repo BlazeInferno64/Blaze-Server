@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>Blaze Server | Admin Login</title>
+    <meta name="author" content="blazeinferno64">
+    <meta name="description" content="Fast, minimalistic, multi-threaded, open source rest api server made by BlazeInferno64">
+    <meta name="theme-color" content="black">
+    <meta name="keywords" content="BlazeInferno64, Github, blazed.js, Blaze Server, Blaze Rest Api Server , Blaze Servers">
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/96913755?v=4" type="image/x-icon"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-primary">Admin Login</h1>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" class="form-control" id="username" name="username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
+        </div>
+        <button type="submit" id="btn" class="btn btn-primary">Login</button>
+      </form>
+      <p class="text-muted">Facing some issues? <a href="https://github.com/blazeinferno64/blaze-api/issues" target="_blank">Report it here</a></p>
+      <p class="text-muted">Last updated: <%= formattedDate %></p>
+    </div>
+    <script src="/assets/js/script.js"></script>
+  </body>
+</html>

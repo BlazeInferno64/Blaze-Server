@@ -1,0 +1,19 @@
+<meta name="author" content="blazeinferno64">
+<meta name="description" content="Fast, minimalistic, multi-threaded, open source rest api server made by BlazeInferno64">
+<meta name="theme-color" content="black">
+<meta name="keywords" content="BlazeInferno64, Github, blazed.js, Blaze Server, Blaze Rest Api Server , Blaze Servers">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<link rel="icon" href="https://avatars.githubusercontent.com/u/96913755?v=4" type="image/x-icon"/>
+<div class="container mt-5">
+    <h1 class="text-primary">Supported Formats for IP api</h1>
+    <p class="lead">The following formats are supported and valid for every request:</p>
+    <ul class="list-group">
+        <% defaultFormats.forEach(format => { %>
+            <li class="list-group-item">
+                <strong class="text-primary"><%- format.name %></strong>: <%= format.description %>
+            </li>
+        <% }); %>
+    </ul>
+    <p class="mt-3">Formats that are not matched with the above specified formats will result in a status of 400 (Bad Request)!</p>
+    <p class="mt-1">Please use the <code class="bg-light p-1">format</code> query parameter to specify the desired format, for example: <code class="bg-light p-1">?format=json</code></p>
+</div>
