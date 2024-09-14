@@ -11,7 +11,7 @@ Follow the steps below
 
 Clone this repo by pasting and executing the following command in your terminal
 
-```bash
+```python
 $ git clone https://github.com/blazeinferno64/Blaze-Server.git
 ```
 
@@ -30,7 +30,7 @@ Make an `.env` file and copy the contents of the <a href="./example.env">example
 
 The `.env` file's contents would look something like this:
 
-```bash
+```python
 PORT=YOUR_PORT_NUMBER_HERE
 ADMIN_PASSWORD=YOUR_ADMIN_PASSWORD_HERE
 ADMIN_USERNAME=YOUR_ADMIN_USERNAME_HERE
