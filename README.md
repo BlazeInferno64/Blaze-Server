@@ -12,7 +12,7 @@ Follow the steps below
 Clone this repo by pasting and executing the following command in your terminal
 
 ```bash
-$ git clone https://github.com/blazeinferno64/Blaze-API
+$ git clone https://github.com/blazeinferno64/Blaze-Server.git
 ```
 
 ## Dependencies
