@@ -3,6 +3,17 @@
 Fast, minimalistic, multi-threaded, open source rest api server made in javascript
 |----|
 
+# Live testing 
+
+You can also test this api live here
+
+<a href="https://blaze-server-x75p.onrender.com/">
+
+```
+https://blaze-server-x75p.onrender.com/
+```
+</a>
+
 # Setup/Installation
 
 Follow the steps below 
