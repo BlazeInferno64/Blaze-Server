@@ -11,11 +11,11 @@
   "license": "ISC",
   "description": "Fast, minimalistic, multi-threaded, open source rest api server made in javascript",
   "dependencies": {
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
-    "express": "^4.19.2",
+    "express": "^4.21.1",
     "express-rate-limit": "^7.4.0",
     "helmet": "^7.1.0",
     "JSONStream": "^1.3.5",
