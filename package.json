@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "BlazeInfernp64",
   "license": "ISC",
-  "description": "Fast, minimalistic, multi-threaded, open source rest api server made in javascript",
+  "description": "Fast, minimalist, multi-threaded, open source rest api server made in javascript",
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
