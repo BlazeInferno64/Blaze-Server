@@ -1,6 +1,6 @@
 # Blaze Server
 
-Fast, minimalistic, multi-threaded, open source rest api server made in javascript
+Fast, minimalist, multi-threaded, open source rest api server made in javascript
 |----|
 
 # Live testing 
