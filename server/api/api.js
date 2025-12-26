@@ -6,12 +6,24 @@ import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
 import ejs from "ejs";
+import blazed from "blazed.js";
+import dns from "dns/promises";
+
+
+import { isPrivateIp } from "../tools/dns.js";
 
 const __dirname = import.meta.dirname;
 
 const packageJsonFilePath = path.join(__dirname, "..", "..", "./package.json");
 const jsonData = fs.readFileSync(packageJsonFilePath, "utf-8");
 const parsedJSONData = JSON.parse(jsonData);
+
+
+const obj = blazed.configure({
+    "headers": {
+        "X-Requested-With": false,
+    }
+});
 
 const limiter = rateLimit({
     windowMs: 60 * 1000,
@@ -44,6 +56,9 @@ router.use("/users", cors({
 router.use("/ip", cors({
     origin: "*"
 }));
+router.use("/proxy", cors({
+    origin: "*",
+}));
 router.use((req, res, next) => {
     res.set("X-Api-Version", parsedJSONData.version);
     return next();
@@ -55,6 +70,125 @@ router.get("/", (req, res) => {
         message: `For api usage please check https://github.com/blazeinferno64/Blaze-Server`
     });
 })
+
+let decodeUrl;
+
+router.all("/proxy:url?", async (req, res) => {
+    try {
+        const rawUrl = req.query.url || req.params.url;
+
+        const timeout = req.query.timeout;
+
+        if (!rawUrl) {
+            return res.status(400).json({ status: "failed", message: "Empty URL" });
+        }
+
+        try {
+            decodeUrl = decodeURIComponent(rawUrl);
+        } catch {
+            return res.status(400).json({
+                status: "failed",
+                message: "Invalid URL encoding"
+            });
+        }
+
+        let target;
+        try {
+            target = new URL(decodeUrl);
+        } catch {
+            return res.status(400).json({ status: "failed", message: "Invalid URL" });
+        }
+
+        if (!["http:", "https:"].includes(target.protocol)) {
+            return res.status(400).json({ status: "failed", message: "Invalid protocol" });
+        }
+
+
+        const hostname = target.hostname;
+
+        const blockedHosts = ["localhost", "0.0.0.0"];
+        if (blockedHosts.includes(hostname)) {
+            return res.status(403).json({ status: "failed", message: "Blocked host" });
+        }
+
+        if (hostname.includes(":")) {
+            return res.status(403).json({
+                status: "failed",
+                message: "IPv6 literals not allowed"
+            });
+        }
+
+
+        const privateIpPatterns = [
+            /^127\./,
+            /^10\./,
+            /^192\.168\./,
+            /^169\.254\./,
+            /^172\.(1[6-9]|2\d|3[0-1])\./
+        ];
+
+        if (privateIpPatterns.some(r => r.test(hostname))) {
+            return res.status(403).json({ status: "failed", message: "Private IP blocked" });
+        }
+
+        /*const ALLOWED_DOMAINS = ["api.ipify.org", "api.github.com"];
+        if (!ALLOWED_DOMAINS.includes(hostname)) {
+            return res.status(403).json({ status: "failed", message: "Domain not allowed" });
+        }*/
+
+        const records = await dns.lookup(hostname, { all: true });
+
+        if (records.some(r => isPrivateIp(r.address))) {
+            return res.status(403).json({
+                status: "failed",
+                message: "Blocked"
+            });
+        }
+
+        //const headers = { ...req.headers };
+        const headers = Object.fromEntries(
+            Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), v])
+        );
+
+        delete headers.host;
+        delete headers.connection;
+        delete headers.origin;
+        delete headers.referer;
+        delete headers["content-length"];
+        delete headers["accept-encoding"];
+
+        if (timeout) {
+            return console.log(`Proceeding with the HTTP request using timeout of ${timeout}ms`)
+        }
+
+        const response = await blazed.request({
+            method: req.method,
+            url: decodeUrl,
+            headers: {
+                ...headers,
+                host: hostname,
+            },
+            body: req.body,
+            timeout: timeout ? timeout : 8000 // 8 seconds is reasonable
+        });
+
+        return res.json({
+            status: "success",
+            message: {
+                data: response.data,
+                duration: response.duration,
+                responseSize: response.responseSize,
+                responseHeaders: response.responseHeaders,
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: "failed", message: "Proxy error" });
+    }
+});
+
+
 
 router.get("/ip", (req, res) => {
     const { format } = req.query;
@@ -108,7 +242,7 @@ router.get("/ip/formats", (req, res) => {
         { name: '<a href="https://en.wikipedia.org/wiki/YAML">yaml</a>', description: 'YAML Ain\'t Markup Language, a human-readable serialization format commonly used for configuration files and data exchange.' }
     ];
 
-    ejs.renderFile(path.join(__dirname, "..", ".." , "./views/formats.ejs"), { defaultFormats }, (err, html) => {
+    ejs.renderFile(path.join(__dirname, "..", "..", "./views/formats.ejs"), { defaultFormats }, (err, html) => {
         if (err) {
             console.error(err);
             res.status(500).json({ message: "Internal Server Error" });

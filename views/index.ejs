@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Blaze Server | Fast, minimalist, multi-threaded, open source rest api server</title>
+        <title>Blaze Server | Free and open source public rest api</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
         <link rel="icon" href="https://avatars.githubusercontent.com/u/96913755?v=4" type="image/x-icon"/>
@@ -12,13 +12,13 @@
     </head>
     <body>
         <div class="container mt-5">
-            <h1 class="text-primary">Welcome to Blaze Server</h1>
-            <p class="lead">For more info, check out the <a href="https://github.com/blazeinferno64/Blaze-Server"><i class="fab fa-github"></i> GitHub repository</a>.</p>
+            <h1 class="text-primary">Welcome to Blaze API</h1>
+            <p class="lead">For more info, check out the <a href="https://github.com/blazeinferno64/blaze-api"><i class="fab fa-github"></i> GitHub repository</a>.</p>
             <p class="text-muted">Last updated: <%= formattedDate %></p>
             <p class="text-muted">Server Status: <a target="_blank" href="/status"><span class="badge <%= serverStatus.Server === 'online' ? 'badge-success' : 'badge-danger' %>"><%= serverStatus.Server %></span></a></p>
             <div class="d-flex justify-content-start ml-0">
                 <a href="/api"><button class="btn btn-primary mr-2"><i class="fa-solid fa-paper-plane"></i> Explore API</button></a>
-                <a href="https://github.com/blazeinferno64/Blaze-Server" target="_blank">
+                <a href="https://github.com/blazeinferno64/blaze-api" target="_blank">
                     <button class="btn btn-secondary">
                         <i class="fab fa-github"></i> Star this project
                     </button>

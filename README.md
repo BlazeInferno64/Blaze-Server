@@ -1,18 +1,7 @@
 # Blaze Server
 
-Fast, minimalist, multi-threaded, open source rest api server made in javascript
+Fast, minimalistic, multi-threaded, open source rest api server made in javascript
 |----|
-
-# Live testing 
-
-You can also test this api live here
-
-<a href="https://blaze-server-x75p.onrender.com/">
-
-```
-https://blaze-server-x75p.onrender.com/
-```
-</a>
 
 # Setup/Installation
 
@@ -22,8 +11,8 @@ Follow the steps below
 
 Clone this repo by pasting and executing the following command in your terminal
 
-```python
-$ git clone https://github.com/blazeinferno64/Blaze-Server.git
+```bash
+$ git clone https://github.com/blazeinferno64/Blaze-API
 ```
 
 ## Dependencies
@@ -41,7 +30,7 @@ Make an `.env` file and copy the contents of the <a href="./example.env">example
 
 The `.env` file's contents would look something like this:
 
-```python
+```bash
 PORT=YOUR_PORT_NUMBER_HERE
 ADMIN_PASSWORD=YOUR_ADMIN_PASSWORD_HERE
 ADMIN_USERNAME=YOUR_ADMIN_USERNAME_HERE
@@ -61,9 +50,8 @@ $ npm start
 
 Found a bug or want a new feature?
 
-Report issues and request features on the [Blaze Server issue tracker](https://github.com/blazeinferno64/Blaze-API/issues).
+Report issues and request features on the [Blaze API issue tracker](https://github.com/blazeinferno64/Blaze-API/issues).
 
 `Thanks for reading!`
 
 `Have a great day ahead :D`
-

@@ -9,6 +9,7 @@ import JSONStream from "JSONStream";
 import path from "path";
 import ejs from "ejs";
 import cookieParser from "cookie-parser";
+import blazed from "blazed.js";
 
 import apiRoute from "./api/api.js";
 import adminRoute from "./admin/admin.js";
@@ -27,6 +28,7 @@ const numCpus = availableParallelism(); //os.cpus().length; is generally not rec
 
 // Create a function to handle worker process
 function startWorker() {
+
     serverStatus.Server = "online";
     const app = express();
 
@@ -130,6 +132,27 @@ function startWorker() {
         }
     });
 
+    app.get("/about", (req, res) => {
+        return res.json({
+            status: "success",
+            message: blazed.ABOUT
+        })
+    })
+
+    app.get("/methods", (req, res) => {
+        return res.json({
+            status: "success",
+            message: blazed.METHODS
+        })
+    })
+    
+    app.get("/status-codes", (req, res) => {
+        return res.json({
+            status: "success",
+            message: blazed.STATUS_CODES
+        })
+    })
+
     app.all("*", (req, res, next) => {
         res.status(404);
         const data = { url: req.path, method: req.method };
@@ -164,3 +187,5 @@ if (cluster.isPrimary) {
 } else {
     startWorker();
 }
+
+
