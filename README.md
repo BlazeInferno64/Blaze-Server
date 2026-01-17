@@ -7,6 +7,12 @@ Fast, minimalistic, multi-threaded, open source rest api server made in javascri
 
 https://blazeserver.instatus.com/
 
+# Api docs 
+
+Rest api usage docs 👇 
+
+https://blazeinferno64.github.io/#api
+
 # Setup/Installation
 
 Follow the steps below 
@@ -59,4 +65,5 @@ Report issues and request features on the [Blaze API issue tracker](https://gith
 `Thanks for reading!`
 
 `Have a great day ahead :D`
+
 
