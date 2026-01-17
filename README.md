@@ -60,10 +60,11 @@ $ npm start
 
 Found a bug or want a new feature?
 
-Report issues and request features on the [Blaze API issue tracker](https://github.com/blazeinferno64/Blaze-API/issues).
+Report issues and request features on the [Blaze Server issue tracker](https://github.com/blazeinferno64/Blaze-Server/issues).
 
 `Thanks for reading!`
 
 `Have a great day ahead :D`
+
 
 
