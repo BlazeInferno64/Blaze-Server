@@ -67,7 +67,7 @@ router.use((req, res, next) => {
 router.get("/", (req, res) => {
     return res.json({
         status: 'success',
-        message: `For api usage please check https://github.com/blazeinferno64/Blaze-Server`
+        message: `For api usage please check https://blazeinferno64.github.io/#api`
     });
 })
 
@@ -76,20 +76,17 @@ let decodeUrl;
 router.all("/proxy:url?", async (req, res) => {
     try {
         const rawUrl = req.query.url || req.params.url;
-
         const timeout = req.query.timeout;
 
         if (!rawUrl) {
             return res.status(400).json({ status: "failed", message: "Empty URL" });
         }
 
+        // 1. URL DECODING & PROTOCOL CHECK
         try {
             decodeUrl = decodeURIComponent(rawUrl);
         } catch {
-            return res.status(400).json({
-                status: "failed",
-                message: "Invalid URL encoding"
-            });
+            return res.status(400).json({ status: "failed", message: "Invalid URL encoding" });
         }
 
         let target;
@@ -103,75 +100,64 @@ router.all("/proxy:url?", async (req, res) => {
             return res.status(400).json({ status: "failed", message: "Invalid protocol" });
         }
 
-
         const hostname = target.hostname;
 
-        const blockedHosts = ["localhost", "0.0.0.0"];
-        if (blockedHosts.includes(hostname)) {
-            return res.status(403).json({ status: "failed", message: "Blocked host" });
+        // 2. SSRF PROTECTION (BLOCK PRIVATE NETWORKS)
+        const blockedHosts = ["localhost", "0.0.0.0", "127.0.0.1"];
+        if (blockedHosts.includes(hostname) || hostname.includes(":")) {
+            return res.status(403).json({ status: "failed", message: "Restricted host" });
         }
-
-        if (hostname.includes(":")) {
-            return res.status(403).json({
-                status: "failed",
-                message: "IPv6 literals not allowed"
-            });
-        }
-
 
         const privateIpPatterns = [
-            /^127\./,
-            /^10\./,
-            /^192\.168\./,
-            /^169\.254\./,
-            /^172\.(1[6-9]|2\d|3[0-1])\./
+            /^127\./, /^10\./, /^192\.168\./, /^169\.254\./, /^172\.(1[6-9]|2\d|3[0-1])\./
         ];
 
         if (privateIpPatterns.some(r => r.test(hostname))) {
             return res.status(403).json({ status: "failed", message: "Private IP blocked" });
         }
 
-        /*const ALLOWED_DOMAINS = ["api.ipify.org", "api.github.com"];
-        if (!ALLOWED_DOMAINS.includes(hostname)) {
-            return res.status(403).json({ status: "failed", message: "Domain not allowed" });
-        }*/
-
+        // DNS Level SSRF Check (Prevents DNS Rebinding)
         const records = await dns.lookup(hostname, { all: true });
-
         if (records.some(r => isPrivateIp(r.address))) {
-            return res.status(403).json({
-                status: "failed",
-                message: "Blocked"
-            });
+            return res.status(403).json({ status: "failed", message: "Access Denied: Private IP" });
         }
 
-        //const headers = { ...req.headers };
-        const headers = Object.fromEntries(
+        // 3. HEADER CLEANING & ANTI-BOT FINGERPRINTING
+        const incomingHeaders = Object.fromEntries(
             Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), v])
         );
 
-        delete headers.host;
-        delete headers.connection;
-        delete headers.origin;
-        delete headers.referer;
-        delete headers["content-length"];
-        delete headers["accept-encoding"];
-
-        if (timeout) {
-            return console.log(`Proceeding with the HTTP request using timeout of ${timeout}ms`)
-        }
+        // Define headers we are willing to pass from the user to the target
+        const safeHeaders = {};
+        const allowedKeys = ['accept', 'accept-language', 'cookie', 'content-type'];
+        allowedKeys.forEach(key => {
+            if (incomingHeaders[key]) safeHeaders[key] = incomingHeaders[key];
+        });
 
         const response = await blazed.request({
             method: req.method,
             url: decodeUrl,
             headers: {
-                ...headers,
-                host: hostname,
+                ...safeHeaders, // Pass through cookies and content types
+                "host": target.host, // Crucial: Use the target's actual host
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "connection": "keep-alive",
+                "upgrade-insecure-requests": "1",
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-site": "none",
+                "sec-fetch-user": "?1",
+                // Modern Browser Fingerprinting (Stops "Robot" errors)
+                "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"Windows"',
+                //"accept-encoding": "gzip, deflate, br"
             },
-            body: req.body,
-            timeout: timeout ? timeout : 8000 // 8 seconds is reasonable
+            body: ["POST", "PUT", "PATCH"].includes(req.method) ? req.body : undefined,
+            timeout: timeout ? parseInt(timeout) : 8000
         });
 
+        // 4. RETURN RESPONSE
         return res.json({
             status: "success",
             message: {
@@ -183,8 +169,11 @@ router.all("/proxy:url?", async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ status: "failed", message: "Proxy error" });
+        console.error("Proxy Error:", err.message);
+        return res.status(500).json({ 
+            status: "failed", 
+            message: err.code === "ETIMEDOUT" ? "Target timed out" : "Proxy connection error" 
+        });
     }
 });
 

@@ -11,7 +11,7 @@
   "license": "MIT",
   "description": "Fast, minimalistic, multi-threaded, open source rest api server made in javascript",
   "dependencies": {
-    "blazed.js": "^3.1.5",
+    "blazed.js": "^3.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
