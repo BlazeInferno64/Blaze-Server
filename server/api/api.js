@@ -8,6 +8,9 @@ import rateLimit from "express-rate-limit";
 import ejs from "ejs";
 import blazed from "blazed.js";
 import dns from "dns/promises";
+//import UserAgent from 'user-agents';
+
+blazed.registerGlobals();
 
 
 import { isPrivateIp } from "../tools/dns.js";
@@ -73,7 +76,7 @@ router.get("/", (req, res) => {
 
 let decodeUrl;
 
-router.all("/proxy:url?", async (req, res) => {
+router.all("/proxy", async (req, res) => {
     try {
         const rawUrl = req.query.url || req.params.url;
         const timeout = req.query.timeout;
@@ -83,6 +86,7 @@ router.all("/proxy:url?", async (req, res) => {
         }
 
         // 1. URL DECODING & PROTOCOL CHECK
+        let decodeUrl;
         try {
             decodeUrl = decodeURIComponent(rawUrl);
         } catch {
@@ -127,19 +131,23 @@ router.all("/proxy:url?", async (req, res) => {
             Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), v])
         );
 
-        // Define headers we are willing to pass from the user to the target
         const safeHeaders = {};
         const allowedKeys = ['accept', 'accept-language', 'cookie', 'content-type'];
         allowedKeys.forEach(key => {
             if (incomingHeaders[key]) safeHeaders[key] = incomingHeaders[key];
         });
 
-        const response = await blazed.request({
+        const controller = new AbortController();
+        const timeoutMs = timeout ? parseInt(timeout) : 8000;
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+        const startTime = Date.now();
+
+        let fetchOptions = {
             method: req.method,
-            url: decodeUrl,
             headers: {
-                ...safeHeaders, // Pass through cookies and content types
-                "host": target.host, // Crucial: Use the target's actual host
+                ...safeHeaders,
+                "host": target.host,
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "connection": "keep-alive",
                 "upgrade-insecure-requests": "1",
@@ -147,33 +155,67 @@ router.all("/proxy:url?", async (req, res) => {
                 "sec-fetch-mode": "navigate",
                 "sec-fetch-site": "none",
                 "sec-fetch-user": "?1",
-                // Modern Browser Fingerprinting (Stops "Robot" errors)
                 "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
                 "sec-ch-ua-mobile": "?0",
                 "sec-ch-ua-platform": '"Windows"',
-                //"accept-encoding": "gzip, deflate, br"
             },
-            body: ["POST", "PUT", "PATCH"].includes(req.method) ? req.body : undefined,
-            timeout: timeout ? parseInt(timeout) : 8000
-        });
+            signal: controller.signal,
+            redirect: "follow",
+        };
 
-        // 4. RETURN RESPONSE
+        if (["POST", "PUT", "PATCH"].includes(req.method) && req.body) {
+            fetchOptions.body = typeof req.body === "object"
+                ? JSON.stringify(req.body)
+                : req.body;
+        }
+
+        const response = await fetch(decodeUrl, fetchOptions);
+        clearTimeout(timer);
+
+        const duration = Date.now() - startTime;
+        const responseHeaders = Object.fromEntries(response.headers.entries());
+        const contentType = response.headers.get("content-type") || "";
+
+        // 4. DATA HANDLING — decode based on content type
+        let data;
+        if (contentType.includes("application/json")) {
+            data = await response.json();
+        } else if (
+            contentType.includes("text/") ||
+            contentType.includes("application/xml") ||
+            contentType.includes("application/javascript")
+        ) {
+            data = await response.text();
+        } else {
+            // Binary (images, fonts, etc.) — encode as base64
+            const buffer = await response.arrayBuffer();
+            data = Buffer.from(buffer).toString("base64");
+        }
+
+        const responseSize = Buffer.byteLength(
+            typeof data === "string" ? data : JSON.stringify(data),
+            "utf-8"
+        );
+
+        // 5. RETURN RESPONSE
         return res.json({
             status: "success",
             message: {
-                data: response.data,
-                duration: response.duration,
-                responseSize: response.responseSize,
-                responseHeaders: response.responseHeaders,
+                data,
+                duration,
+                responseSize,
+                responseHeaders,
+                statusCode: response.status,
+                contentType,
             }
         });
 
     } catch (err) {
         console.error("Proxy Error:", err.message);
-        return res.status(500).json({ 
-            status: "failed", 
-            message: err.code === "ETIMEDOUT" ? "Target timed out" : "Proxy connection error" 
-        });
+        if (err.name === "AbortError") {
+            return res.status(504).json({ status: "failed", message: "Target timed out" });
+        }
+        return res.status(500).json({ status: "failed", message: "Proxy connection error" });
     }
 });
 
@@ -419,11 +461,20 @@ router.delete("/users/:id", (req, res) => {
     });
 })
 
-router.all("*", (req, res, next) => {
+router.use((req, res, next) => {
+    console.log(`${req.ip} ${req.method} on ${req.path} wasn't found in this server!`);
     return res.status(404).json({
         status: 'failed',
         message: `The requested URL '${req.path}' with '${req.method}' HTTP request was not found in the server!`,
     });
 })
+
+/*
+router.all("/{*path}", (req, res, next) => {
+    return res.status(404).json({
+        status: 'failed',
+        message: `The requested URL '${req.path}' with '${req.method}' HTTP request was not found in the server!`,
+    });
+})*/
 
 export default router;

@@ -10,7 +10,7 @@ router.use(express.urlencoded({ extended: false }));
 router.use(express.urlencoded({ extended: false }));
 router.use(express.json());
 router.use(express.raw());
-router.use(express.query());
+//router.use(express.query());
 router.use(express.text());
 router.use(cookieParser());
 

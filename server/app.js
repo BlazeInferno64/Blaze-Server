@@ -35,7 +35,7 @@ function startWorker() {
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
     app.use(express.raw());
-    app.use(express.query());
+    //app.use(express.query());
     app.use(express.text());
     app.use(cookieParser());
     app.enable("trust proxy");
@@ -145,7 +145,7 @@ function startWorker() {
             message: blazed.METHODS
         })
     })
-    
+
     app.get("/status-codes", (req, res) => {
         return res.json({
             status: "success",
@@ -153,7 +153,7 @@ function startWorker() {
         })
     })
 
-    app.all("*", (req, res, next) => {
+    /*app.all("/{*path}", (req, res, next) => {
         res.status(404);
         const data = { url: req.path, method: req.method };
         ejs.renderFile(path.join(__dirname, "..", "./views/404.ejs"), data, (err, html) => {
@@ -165,7 +165,21 @@ function startWorker() {
                 res.send(html);
             }
         });
-    });
+    });*/
+
+    app.use((req, res, next) => {
+        res.status(404);
+        const data = { url: req.path, method: req.method };
+        ejs.renderFile(path.join(__dirname, "..", "./views/404.ejs"), data, (err, html) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ message: "Internal Server Error" });
+            } else {
+                res.set("Content-Type", "text/html");
+                res.send(html);
+            }
+        });
+    })
 
     app.listen(PORT, () => {
         return console.log(`Blaze server is listening on port: ${PORT}`);
