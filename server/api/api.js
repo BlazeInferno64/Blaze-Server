@@ -137,6 +137,14 @@ router.all("/proxy", async (req, res) => {
             if (incomingHeaders[key]) safeHeaders[key] = incomingHeaders[key];
         });
 
+        const clientIp = req.ip;
+
+        // 2. Check if there's already an X-Forwarded-For header from a previous proxy
+        // If so, append the current client IP; otherwise, just use the client IP.
+        const forwardedFor = req.headers['x-forwarded-for']
+            ? `${req.headers['x-forwarded-for']}, ${clientIp}`
+            : clientIp;
+
         const controller = new AbortController();
         const timeoutMs = timeout ? parseInt(timeout) : 8000;
         const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -148,6 +156,7 @@ router.all("/proxy", async (req, res) => {
             headers: {
                 ...safeHeaders,
                 "host": target.host,
+                "x-forwarded-for": forwardedFor, // <-- Add this line
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "connection": "keep-alive",
                 "upgrade-insecure-requests": "1",
